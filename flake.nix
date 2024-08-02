@@ -9,6 +9,16 @@
         let 
           pkgs = import nixpkgs {
             inherit system;
+            overlays = [(self: super: {
+              python312 = super.python312.override {
+                packageOverrides = pySelf: pySuper: {
+                  pillow-simd = pySuper.pillow-simd.overrideAttrs (attrs: {
+                    doCheck = false;
+                    doInstallCheck = false;
+                  });
+                };
+              };
+            })];
           };
         in with pkgs; {
           packages.default = with python312Packages; buildPythonApplication {
@@ -22,7 +32,7 @@
                 imageio
                 imageio-ffmpeg
                 numpy
-                pillow
+                pillow-simd
                 pygame
                 requests
                 soundfile
@@ -35,7 +45,7 @@
               imageio
               imageio-ffmpeg
               numpy
-              pillow
+              pillow-simd
               pygame
               requests
               soundfile
