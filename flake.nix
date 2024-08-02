@@ -41,16 +41,25 @@
               src = ./.;
             };
           devShells.default = mkShell {
-            buildInputs = with python312Packages; [
-              imageio
-              imageio-ffmpeg
-              numpy
-              pillow-simd
-              pygame
-              requests
-              soundfile
-              tqdm
-              python-lsp-server
+            buildInputs = with pkgs; [
+              poetry
+
+              (with python312Packages; [
+                # Dependencies
+                imageio
+                imageio-ffmpeg
+                numpy
+                pillow-simd
+                pygame
+                requests
+                soundfile
+                tqdm
+
+                # Utilities
+                pre-commit
+                python-lsp-server
+                ruff
+              ])
             ];
           };
         }
