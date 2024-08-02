@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import imageio.v2 as iio
-from math import ceil
+from math import floor
 import numpy as np
 import os
 from PIL import Image, ImageOps, ImageFont, ImageDraw
@@ -20,20 +20,22 @@ def genblocks(get, bs):
 
 
 # compress rows into smaller chunks
-def row(lst, n, pa):
-    size = ceil(len(lst) / n)
+def row(row, fps, peak):
+    # flatten channels if not mono
+    if row.ndim > 1:
+        row = row.mean(axis=1)
 
-    result = list(
+    size = floor(len(row) / fps)
+
+    return list(
         map(
             lambda x: int(
-                (np.sqrt(np.mean(lst[x * size : x * size + size] ** 2)) / float(pa))
+                (np.sqrt(np.mean(row[x * size : x * size + size] ** 2)) / float(peak))
                 * 255
             ),
-            list(range(n)),
+            list(range(fps)),
         )
     )
-
-    return result
 
 
 def run():
@@ -89,7 +91,7 @@ def run():
         # finds samples per video frame
         sample_rate = int(full_audio[1])
         audio_frames = int(sample_rate / fps)
-        video_length = int(full_audio[0].shape[0] / float(audio_frames))
+        video_length = int(len(full_audio[0]) / float(audio_frames))
 
         # locates peak amplitude (rms) in audio
         blocks = genblocks(input, audio_frames)
