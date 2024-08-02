@@ -20,11 +20,11 @@ def genblocks(get, bs):
     return sf.blocks(get, blocksize=bs)    
 
 # compress rows into smaller chunks
-def row(lst, n):
+def row(lst, n, pa):
     size = ceil(len(lst) / n)
 
     result = list(
-        map(lambda x: int(np.mean(lst[x * size:x * size + size])),
+        map(lambda x: int((np.sqrt(np.mean(lst[x * size:x * size + size]**2))/float(pa))*255),
         list(range(n)))
     )
     
@@ -90,7 +90,7 @@ def run():
 
     words = dictionary()
     print(" done!")
-
+    
     # audio analysis
     def analyze(audio):
         full_audio = sf.read(audio)
@@ -128,11 +128,8 @@ def run():
     print("start!")
     with tqdm(total=vl) as pbar:
         for (i, block) in enumerate(genblocks(input, af)):
-            # gets rms for each audio frame in chunk
-            op = [int(255*(np.sqrt(np.mean(f**2.0))/pa)) for f in block]
-        
-            # appends new row to buffer
-            compressed = row(op, fps)
+            # create new row and append to buffer
+            compressed = row(block, fps, pa)
             buffer = np.vstack((compressed, buffer))[:-1]
 
             # mirror effect
