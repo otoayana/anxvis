@@ -9,9 +9,13 @@ import random
 import requests
 import soundfile as sf
 from tqdm import tqdm
+import warnings
 
-os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
-import pygame
+# ignore avx2 warnings on nix
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
+    import pygame
 
 
 # summons a new soundfile block generator
