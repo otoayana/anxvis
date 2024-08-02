@@ -28,6 +28,9 @@
               nativeBuildInputs = [
                 poetry-core
               ];
+              buildInputs = [
+                ffmpeg
+              ];
               dependencies = [
                 imageio
                 imageio-ffmpeg
@@ -42,6 +45,7 @@
             };
           devShells.default = mkShell {
             buildInputs = with pkgs; [
+              ffmpeg
               poetry
 
               (with python312Packages; [
