@@ -66,10 +66,15 @@ def run():
     parser.add_argument(
         "-s", metavar="SCALE", type=int, default=4, help="scale factor", dest="scale"
     )
+    parser.add_argument(
+        "-n",
+        "--headless",
+        action="store_true",
+        help="disables gui preview",
+        dest="headless",
+    )
 
     args = parser.parse_args()
-
-    pygame.init()
 
     # arguments to variables
     input = args.input
@@ -126,8 +131,10 @@ def run():
     # opens output video
     writer = iio.get_writer(output, format="mp4", mode="I", fps=fps, audio_path=input)
 
-    # displays preview
-    screen = pygame.display.set_mode((fps * scale, fps * scale), 0, 32)
+    if not args.headless:
+        # displays preview
+        screen = pygame.display.set_mode((fps * scale, fps * scale), 0, 32)
+        pygame.display.set_caption("anxvis")
 
     print("start!")
     with tqdm(total=vl) as pbar:
@@ -152,7 +159,9 @@ def run():
             ).convert("RGBA")
 
             # scroll previous frame of overlay
-            overlay = overlay.transform(overlay.size, Image.AFFINE, (1, 0, -2, 0, 1, 0))
+            overlay = overlay.transform(
+                overlay.size, Image.AFFINE, (1, 0, -(scale / 2), 0, 1, 0)
+            )
 
             # add text to overlay
             if i % 2 == 0:
@@ -169,13 +178,14 @@ def run():
             img = Image.alpha_composite(base, overlay)
             writer.append_data(np.asarray(img))
 
-            # converts image for pygame
-            rimg = img.tobytes("raw", "RGBA")
-            pimg = pygame.image.fromstring(rimg, (fps * scale, fps * scale), "RGBA")
+            if not args.headless:
+                # converts image for pygame
+                rimg = img.tobytes("raw", "RGBA")
+                pimg = pygame.image.fromstring(rimg, (fps * scale, fps * scale), "RGBA")
 
-            # updates image on pygame
-            screen.blit(pimg, (0, 0))
-            pygame.display.update()
+                # updates image on pygame
+                screen.blit(pimg, (0, 0))
+                pygame.display.update()
 
             # increases progress bar
             pbar.update(1)
