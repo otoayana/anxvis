@@ -53,18 +53,48 @@ def run():
         "output", metavar="OUTPUT", type=str, help="path for video output"
     )
     parser.add_argument(
-        "-t",
+        "--font",
         metavar="FONT",
         type=str,
         default="Cartograph CF",
-        help="font name",
+        help="font family",
         dest="font_name",
     )
     parser.add_argument(
-        "-f", metavar="FPS", type=int, default=60, help="framerate", dest="fps"
+        "-f", "--fps", metavar="FPS", type=int, default=60, help="framerate", dest="fps"
     )
     parser.add_argument(
-        "-s", metavar="SCALE", type=int, default=4, help="scale factor", dest="scale"
+        "-s",
+        "--scale",
+        metavar="SCALE",
+        type=int,
+        default=4,
+        help="scale factor",
+        dest="scale",
+    )
+    parser.add_argument(
+        "--font-color",
+        metavar="COLOR",
+        type=str,
+        default="#651e5a",
+        help="color of scrolling text",
+        dest="font_color",
+    )
+    parser.add_argument(
+        "--fg-color",
+        metavar="COLOR",
+        type=str,
+        default="#590f3c",
+        help="color of elements in front of matrix",
+        dest="fg",
+    )
+    parser.add_argument(
+        "--bg-color",
+        metavar="COLOR",
+        type=str,
+        default="#f2dce9",
+        help="color of elements behind matrix",
+        dest="bg",
     )
     parser.add_argument(
         "-n",
@@ -137,7 +167,7 @@ def run():
         pygame.display.set_caption("anxvis")
 
     print("start!")
-    with tqdm(total=vl) as pbar:
+    with tqdm(total=vl, unit="frames") as pbar:
         for i, block in enumerate(genblocks(input, af)):
             # create new row and append to buffer
             compressed = row(block, fps, pa)
@@ -153,8 +183,8 @@ def run():
                     Image.fromarray(np.uint8(doubled), "L").resize(
                         (fps * scale, fps * scale), resample=Image.NEAREST
                     ),
-                    black="#f2dce9",
-                    white="#590f3c",
+                    black=args.bg,
+                    white=args.fg,
                 )
             ).convert("RGBA")
 
@@ -171,7 +201,7 @@ def run():
                     (random.randint(0, fps * scale), random.randint(0, fps * scale)),
                     random.choice(words).decode("utf-8").split("	")[1],
                     font=font,
-                    fill="#651e5a",
+                    fill=args.font_color,
                 )
 
             # composite images and write to file
@@ -180,8 +210,9 @@ def run():
 
             if not args.headless:
                 # converts image for pygame
-                rimg = img.tobytes("raw", "RGBA")
-                pimg = pygame.image.fromstring(rimg, (fps * scale, fps * scale), "RGBA")
+                pimg = pygame.image.frombuffer(
+                    img.tobytes(), (fps * scale, fps * scale), "RGBA"
+                )
 
                 # updates image on pygame
                 screen.blit(pimg, (0, 0))
